@@ -128,9 +128,8 @@ dmypy.json
 # Pyre type checker
 .pyre/
 *.exe
-auth.json
+myauth.json
 fonts
 *.ttf
 *.jpg
-*.png
-*.json
+*.png*.json
