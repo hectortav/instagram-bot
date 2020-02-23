@@ -10,6 +10,7 @@
 - conda activate myEnv / conda deactivate
 - conda install --file requirements.txt 
 - pip install python-resize-image
+- pip install glob3
 
 # Download Fonts
 

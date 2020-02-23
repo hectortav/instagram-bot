@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-import requests, json, textwrap, time, os
+import requests, json, textwrap, time, os, glob, random
 from PIL import Image, ImageDraw, ImageFont, ImageStat, ImageFilter, ImageEnhance
 import nltk
 from resizeimage import resizeimage
@@ -65,7 +65,10 @@ else:
     image = requests.get("https://picsum.photos/" + str(image_size_x) + "/" + str(image_size_y) + "/?blur=" + str(blur)).content
     with open('latest.png', 'wb') as handler:
         handler.write(image)
-
+    with open('latest.png', 'r+b') as f:
+        with Image.open(f) as image:
+            cover = resizeimage.resize_cover(image, [1080, 1350])
+            cover.save('latest.png', "PNG")
 
 background = Image.open("latest.png")
 background = ImageEnhance.Contrast(background).enhance(0.6)
@@ -84,11 +87,13 @@ foreground = Image.open(template)
 
 background.paste(foreground, (0, 0), foreground)
 background.save("combine.png", "PNG")
-exit(0)
-img = Image.open("combine.png")
+img = background
 draw = ImageDraw.Draw(img)
-font = ImageFont.truetype('./fonts/Great-Wishes.ttf', size=45)
-#random.choice(fontList)
+font_name = random.choice(glob.glob("./fonts/*.ttf"))
+print ("font: ", font_name)
+font = ImageFont.truetype(font_name, size=45)
+exit(0)
+
 para = textwrap.wrap(text, width=35)
 current_h, pad = 200, 10
 for line in para:
@@ -105,7 +110,6 @@ if author:
         current_h += h + pad
 
 img.save("ready.png", "PNG")
-img.show()
 
 photo_path = "ready.png"
 caption = "#inspiration #inspirationalquotes #inspirational #inspirationalquote #inspirations #inspirationoftheday \
@@ -113,9 +117,6 @@ caption = "#inspiration #inspirationalquotes #inspirational #inspirationalquote 
     #igers #girl #beautiful #instadaily #summer #instagramhub #follow #igdaily #bestoftheday #happy #picstitch #tagblender \
     #jj #sky #nofilter #fashion #followme #fun #su"
 
-username = "__inspiredtoday__"
-with open('.password.txt', 'r') as file:
-    password = file.read().replace('\n', '')
 image_path = os.path.dirname(os.path.abspath(__file__)) + "\\ready.png"
 
 exit(0)
