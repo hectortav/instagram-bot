@@ -9,7 +9,7 @@ def brightness(im):
    stat = ImageStat.Stat(im)
    return stat.mean[0]
 
-with open('auth.json') as json_file:
+with open('myauth.json') as json_file:
     data = json.load(json_file)
     firebase = data['firebase']
     username = data['username']
