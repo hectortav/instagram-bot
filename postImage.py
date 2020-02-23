@@ -1,15 +1,17 @@
 # -*- coding: utf-8 -*-
-import requests, json, textwrap, time, os, glob, random
+import requests, json, textwrap, time, os, glob, random, hashlib
 from random import randint
 from PIL import Image, ImageDraw, ImageFont, ImageStat, ImageFilter, ImageEnhance
 import nltk
 from resizeimage import resizeimage
+from tinydb import TinyDB, Query
 
 def brightness(im):
    #im = Image.open(im_file).convert('L')
    stat = ImageStat.Stat(im)
    return stat.mean[0]
 
+db = TinyDB('./db.json')
 with open('myauth.json') as json_file:
     data = json.load(json_file)
     firebase = data['firebase']
@@ -27,11 +29,9 @@ blur = 0
 color = 'rgb(0, 0, 0)'
 
 URL = "https://api.forismatic.com/api/1.0/?method=getQuote&lang=en&format=jsonp&jsonp=?"
-
 r = requests.get(url = URL)
 while not r:
     r = requests.get(url = URL)
-
 data = r.content
 data = data[2:]
 data = data[:-1]
@@ -40,6 +40,26 @@ text = data['quoteText']
 author = data['quoteAuthor']
 print(text)
 print(author)
+# get text hash
+md5hash = hashlib.md5(text)
+print(md5hash.hexdigest())
+
+while db.search(Query().textMd5 == md5hash.hexdigest()):
+    r = requests.get(url = URL)
+    while not r:
+        r = requests.get(url = URL)
+    data = r.content
+    data = data[2:]
+    data = data[:-1]
+    data = json.loads(data)
+    text = data['quoteText']
+    author = data['quoteAuthor']
+    print(text)
+    print(author)
+    # get text hash
+    md5hash = hashlib.md5(text)
+
+db.insert({'textMd5': md5hash.hexdigest()})
 
 #image = requests.get("https://picsum.photos/" + str(image_size_x) + "/" + str(image_size_y) + "/?blur=" + str(blur)).content
 is_noun = lambda pos: pos[:2] == 'NN'
@@ -62,6 +82,22 @@ with open('latest.png', 'r+b') as f:
     with Image.open(f) as image:
         cover = resizeimage.resize_cover(image, [1080, 1350])
         cover.save('latest.png', "PNG")
+
+# get image hash
+md5hash = hashlib.md5(Image.open('latest.png').tobytes())
+print(md5hash.hexdigest())
+while db.search(Query().imageMd5 == md5hash.hexdigest()):
+    image = requests.get(URL).content
+    with open('latest.png', 'wb') as handler:
+        handler.write(image)
+    with open('latest.png', 'r+b') as f:
+        with Image.open(f) as image:
+            cover = resizeimage.resize_cover(image, [1080, 1350])
+            cover.save('latest.png', "PNG")
+    md5hash = hashlib.md5(Image.open('latest.png').tobytes())
+
+db.insert({'imageMd5': md5hash.hexdigest()})
+
 background = cover
 background = ImageEnhance.Contrast(background).enhance(random.uniform(0.7, 1.0))
 background = background.filter(ImageFilter.GaussianBlur(radius = randint(0, 5)))
@@ -81,17 +117,18 @@ img = background
 draw = ImageDraw.Draw(img)
 font_name = random.choice(glob.glob("./fonts/*.ttf"))
 print ("font: " + font_name)
-font = ImageFont.truetype(font_name, size=45)
+font = ImageFont.truetype(font_name, size=65)
 
-para = textwrap.wrap(text, width=35)
-current_h, pad = 200, 10
+para = textwrap.wrap(text, width=25)
+current_h, pad = 250, 10
 for line in para:
     w, h = draw.textsize(line, font=font)
     draw.text(((image_size_x - w) / 2, current_h), line, font=font, fill=color)
     current_h += h + pad
 if author:
+    font = ImageFont.truetype(font_name, size=75)
     current_h += h + pad
-    para = textwrap.wrap(author, width=25)
+    para = textwrap.wrap(author, width=15)
     for line in para:
         w, h = draw.textsize(line, font=font)
         draw.text(((image_size_x - w) / 2, current_h), line + ".", font=font, fill=color)
