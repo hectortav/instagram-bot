@@ -132,4 +132,5 @@ myauth.json
 fonts
 *.ttf
 *.jpg
-*.png*.json
+*.png
+*.json

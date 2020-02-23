@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 import requests, json, textwrap, time, os, glob, random
+from random import randint
 from PIL import Image, ImageDraw, ImageFont, ImageStat, ImageFilter, ImageEnhance
 import nltk
 from resizeimage import resizeimage
@@ -51,29 +52,19 @@ if len(nouns) != 0:
         if r.status_code == 200:
             break
 
-if len(nouns) != 0 and r.status_code == 200:
-    image = requests.get(URL).content
-    with open('latest.png', 'wb') as handler:
-        handler.write(image)
-
-    with open('latest.png', 'r+b') as f:
-        with Image.open(f) as image:
-            cover = resizeimage.resize_cover(image, [1080, 1350])
-            cover.save('latest.png', "PNG")
-else:
+if len(nouns) == 0 or r.status_code != 200:
     print ("< Using Default >")
-    image = requests.get("https://picsum.photos/" + str(image_size_x) + "/" + str(image_size_y) + "/?blur=" + str(blur)).content
-    with open('latest.png', 'wb') as handler:
-        handler.write(image)
-    with open('latest.png', 'r+b') as f:
-        with Image.open(f) as image:
-            cover = resizeimage.resize_cover(image, [1080, 1350])
-            cover.save('latest.png', "PNG")
-
-background = Image.open("latest.png")
-background = ImageEnhance.Contrast(background).enhance(0.6)
-background = background.filter(ImageFilter.GaussianBlur(radius = 5))
-background.save("latest.png", "PNG")
+    URL = "https://source.unsplash.com/random/1080x1350"
+image = requests.get(URL).content
+with open('latest.png', 'wb') as handler:
+    handler.write(image)
+with open('latest.png', 'r+b') as f:
+    with Image.open(f) as image:
+        cover = resizeimage.resize_cover(image, [1080, 1350])
+        cover.save('latest.png', "PNG")
+background = cover
+background = ImageEnhance.Contrast(background).enhance(random.uniform(0.7, 1.0))
+background = background.filter(ImageFilter.GaussianBlur(radius = randint(0, 5)))
 
 crop_rectangle = (200, 200, image_size_x - 200, image_size_y - 400)
 cropped_im = background.crop(crop_rectangle)
@@ -86,13 +77,11 @@ if int(brightness(cropped_im)) < 120:
 foreground = Image.open(template)
 
 background.paste(foreground, (0, 0), foreground)
-background.save("combine.png", "PNG")
 img = background
 draw = ImageDraw.Draw(img)
 font_name = random.choice(glob.glob("./fonts/*.ttf"))
-print ("font: ", font_name)
+print ("font: " + font_name)
 font = ImageFont.truetype(font_name, size=45)
-exit(0)
 
 para = textwrap.wrap(text, width=35)
 current_h, pad = 200, 10
@@ -103,13 +92,16 @@ for line in para:
 if author:
     current_h += h + pad
     para = textwrap.wrap(author, width=25)
-    current_h, pad = 200, 10
     for line in para:
         w, h = draw.textsize(line, font=font)
         draw.text(((image_size_x - w) / 2, current_h), line + ".", font=font, fill=color)
         current_h += h + pad
 
 img.save("ready.png", "PNG")
+if os.path.exists("latest.png"):
+    os.remove("latest.png")
+img.show()
+exit(0)
 
 photo_path = "ready.png"
 caption = "#inspiration #inspirationalquotes #inspirational #inspirationalquote #inspirations #inspirationoftheday \
