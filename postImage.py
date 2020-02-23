@@ -28,38 +28,44 @@ image_size_y = 1350
 blur = 0
 color = 'rgb(0, 0, 0)'
 
-URL = "https://api.forismatic.com/api/1.0/?method=getQuote&lang=en&format=jsonp&jsonp=?"
-r = requests.get(url = URL)
-while not r:
-    r = requests.get(url = URL)
-data = r.content
-data = data[2:]
-data = data[:-1]
-data = json.loads(data)
-text = data['quoteText']
-author = data['quoteAuthor']
-print(text)
-print(author)
-# get text hash
-md5hash = hashlib.md5(text)
-print(md5hash.hexdigest())
-
-while db.search(Query().textMd5 == md5hash.hexdigest()):
-    r = requests.get(url = URL)
-    while not r:
+done = False
+while done is False:
+    try:
+        URL = "https://api.forismatic.com/api/1.0/?method=getQuote&lang=en&format=jsonp&jsonp=?"
         r = requests.get(url = URL)
-    data = r.content
-    data = data[2:]
-    data = data[:-1]
-    data = json.loads(data)
-    text = data['quoteText']
-    author = data['quoteAuthor']
-    print(text)
-    print(author)
-    # get text hash
-    md5hash = hashlib.md5(text)
+        while not r:
+            r = requests.get(url = URL)
+        data = r.content
+        data = data[2:]
+        data = data[:-1]
+        data = json.loads(data)
+        text = data['quoteText']
+        author = data['quoteAuthor']
+        print(text)
+        print(author)
+        # get text hash
+        md5hash = hashlib.md5(text)
+        print(md5hash.hexdigest())
 
-db.insert({'textMd5': md5hash.hexdigest()})
+        while db.search(Query().textMd5 == md5hash.hexdigest()):
+            r = requests.get(url = URL)
+            while not r:
+                r = requests.get(url = URL)
+            data = r.content
+            data = data[2:]
+            data = data[:-1]
+            data = json.loads(data)
+            text = data['quoteText']
+            author = data['quoteAuthor']
+            print(text)
+            print(author)
+            # get text hash
+            md5hash = hashlib.md5(text)
+
+        db.insert({'textMd5': md5hash.hexdigest()})
+        done = True
+    except:
+        pass
 
 #image = requests.get("https://picsum.photos/" + str(image_size_x) + "/" + str(image_size_y) + "/?blur=" + str(blur)).content
 is_noun = lambda pos: pos[:2] == 'NN'

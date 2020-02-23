@@ -18,3 +18,10 @@
 - cd fonts
 - curl -O https://www.fontmirror.com/app_public/files/t/1/Helvetica_33244fbeea10f093ae87de7a994c3697.ttf
 - curl -O https://github.com/huuphongnguyen/cereal-airbnb-font/raw/master/AirbnbCereal-Book.ttf
+
+# To do
+
+- crontab -e //create a new cron job
+- 0 11,20,2 * * * sleep ${RANDOM:0:5}m ; /path/to/script
+- tmux ls
+- tmux a -t 0
