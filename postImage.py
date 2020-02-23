@@ -74,11 +74,13 @@ background.save("latest.png", "PNG")
 
 crop_rectangle = (200, 200, image_size_x - 200, image_size_y - 400)
 cropped_im = background.crop(crop_rectangle)
+template = "template_black.png"
 if int(brightness(cropped_im)) < 120:
     color = 'rgb(255, 255, 255)'
     background = background.point(lambda  p: p * 0.9)   #darken
+    template = "template_white.png"
 
-foreground = Image.open("template.png")
+foreground = Image.open(template)
 
 background.paste(foreground, (0, 0), foreground)
 background.save("combine.png", "PNG")
