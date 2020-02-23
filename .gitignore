@@ -131,3 +131,5 @@ dmypy.json
 auth.json
 fonts
 *.ttf
+*.jpg
+*.png
