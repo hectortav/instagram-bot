@@ -134,3 +134,4 @@ fonts
 *.jpg
 *.png
 *.json
+debug*

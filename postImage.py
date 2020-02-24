@@ -5,6 +5,11 @@ from PIL import Image, ImageDraw, ImageFont, ImageStat, ImageFilter, ImageEnhanc
 import nltk
 from resizeimage import resizeimage
 from tinydb import TinyDB, Query
+import autoit
+from time import sleep
+from selenium import webdriver
+from selenium.webdriver.chrome.options import Options
+from selenium.webdriver.common.action_chains import ActionChains
 
 def brightness(im):
    #im = Image.open(im_file).convert('L')
@@ -20,6 +25,8 @@ with open('myauth.json') as json_file:
     unsplashApiKey = data['unsplash']['apiKey']
     firebaseEmail = data['firebase-email']
     firebasePassword = data['firebase-password']
+    ritekitClientId = data['ritekitClientId']
+    ritekitClientSecret = data['ritekitClientSecret']
 
 nltk.download('punkt')
 nltk.download('averaged_perceptron_tagger')
@@ -28,8 +35,8 @@ image_size_y = 1350
 blur = 0
 color = 'rgb(0, 0, 0)'
 
-done = False
-while done is False:
+done = 0
+while done >= 0 and done < 9:
     try:
         URL = "https://api.forismatic.com/api/1.0/?method=getQuote&lang=en&format=jsonp&jsonp=?"
         r = requests.get(url = URL)
@@ -63,11 +70,11 @@ while done is False:
             md5hash = hashlib.md5(text)
 
         db.insert({'textMd5': md5hash.hexdigest()})
-        done = True
+        done = 10
     except:
+        done += 1
         pass
-
-#image = requests.get("https://picsum.photos/" + str(image_size_x) + "/" + str(image_size_y) + "/?blur=" + str(blur)).content
+#image = requests.get("https://picsum.photos/" + str(image_size_x) + "/" + str(image_size_y) + "/?blur=" + str(blur)).content-----
 is_noun = lambda pos: pos[:2] == 'NN'
 tokenized = nltk.word_tokenize(text)
 nouns = [word for (word, pos) in nltk.pos_tag(tokenized) if is_noun(pos)] 
@@ -144,27 +151,27 @@ img.save("ready.png", "PNG")
 if os.path.exists("latest.png"):
     os.remove("latest.png")
 img.show()
-exit(0)
 
 photo_path = "ready.png"
-caption = "#inspiration #inspirationalquotes #inspirational #inspirationalquote #inspirations #inspirationoftheday \
-    #inspirationalwords #love #instagood #me #cute #tbt #photooftheday #instamood #iphonesia #tweegram #picoftheday \
-    #igers #girl #beautiful #instadaily #summer #instagramhub #follow #igdaily #bestoftheday #happy #picstitch #tagblender \
-    #jj #sky #nofilter #fashion #followme #fun #su"
-
+numberOfHashtags = 5
+URL = "https://api.ritekit.com/v1/stats/auto-hashtag?post="
+for word in text.split():
+    URL += word
+    URL += "%20"
+URL += "&maxHashtags=" + str(numberOfHashtags) + "&hashtagPosition=auto&client_id=" + ritekitClientId
+r = requests.get(url = URL)
+while not r:
+     r = requests.get(url = URL)
+data = r.content
+data = json.loads(data)
+caption = data['post']
+print (caption)
 image_path = os.path.dirname(os.path.abspath(__file__)) + "\\ready.png"
-
-exit(0)
-
-import autoit
-from time import sleep
-from selenium import webdriver
-from selenium.webdriver.chrome.options import Options
-from selenium.webdriver.common.action_chains import ActionChains
 
 mobile_emulation = { "deviceName": "Pixel 2" }
 opts = webdriver.ChromeOptions()
 opts.add_experimental_option("mobileEmulation", mobile_emulation)
+#opts.add_argument("--headless")
 
 driver = webdriver.Chrome(executable_path=r"./chromedriver",options=opts)
 
@@ -176,7 +183,7 @@ sleep(4)
 def login():
     login_button = driver.find_element_by_xpath("//button[contains(text(),'Log In')]")
     login_button.click()
-    sleep(3)
+    sleep(randint(3,4))
     username_input = driver.find_element_by_xpath("//input[@name='username']")
     username_input.send_keys(username)
     password_input = driver.find_element_by_xpath("//input[@name='password']")
@@ -185,11 +192,11 @@ def login():
 
 login()
 
-sleep(4)
+sleep(randint(3,4))
 
 def close_reactivated():
     try:
-        sleep(2)
+        sleep(randint(2,3))
         not_now_btn = driver.find_element_by_xpath("//a[contains(text(),'Not Now')]")
         not_now_btn.click()
     except:
@@ -199,36 +206,38 @@ close_reactivated()
 
 def close_notification():
     try: 
-        sleep(2)
+        sleep(randint(2,3))
         close_noti_btn = driver.find_element_by_xpath("//button[contains(text(),'Not Now')]")
         close_noti_btn.click()
-        sleep(2)
+        sleep(randint(2,3))
     except:
         pass
 
 close_notification()
 
 def close_add_to_home():
-    sleep(3) 
+    sleep(randint(3,4)) 
     close_addHome_btn = driver.find_element_by_xpath("//button[contains(text(),'Cancel')]")
     close_addHome_btn.click()
-    sleep(1)
+    sleep(randint(1,2))
 
 close_add_to_home()
-sleep(3)
+sleep(randint(3,4))
 close_notification()
 new_post_btn = driver.find_element_by_xpath("//div[@role='menuitem']").click()
-sleep(1.5)
+sleep(randint(3,4))
 autoit.win_active("Open") 
-sleep(2)
+sleep(randint(3,4))
 autoit.control_send("Open","Edit1",image_path) 
-sleep(1.5)
+sleep(randint(3,4))
 autoit.control_send("Open","Edit1","{ENTER}")
-sleep(2)
+sleep(randint(3,4))
+driver.find_element_by_xpath("//button[@class='pHnkA']").click()
+sleep(randint(3,4))
 next_btn = driver.find_element_by_xpath("//button[contains(text(),'Next')]").click()
-sleep(1.5)
+sleep(randint(3,4))
 caption_field = driver.find_element_by_xpath("//textarea[@aria-label='Write a caption…']")
 caption_field.send_keys(caption)
 share_btn = driver.find_element_by_xpath("//button[contains(text(),'Share')]").click()
-sleep(1)
+sleep(randint(3,4))
 driver.close()
