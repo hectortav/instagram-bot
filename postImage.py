@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-import requests, json, textwrap, time, os, glob, random, hashlib, emoji
+import requests, json, textwrap, time, os, glob, random, hashlib
 from random import randint
 from PIL import Image, ImageDraw, ImageFont, ImageStat, ImageFilter, ImageEnhance
 import nltk
@@ -16,9 +16,6 @@ def brightness(im):
    stat = ImageStat.Stat(im)
    return stat.mean[0]
 
-print (emoji.emojize(':100:'))
-print("\U0001f600")
-exit(0)
 db = TinyDB('./db.json')
 with open('myauth.json') as json_file:
     data = json.load(json_file)
@@ -114,7 +111,7 @@ while db.search(Query().imageMd5 == md5hash.hexdigest()):
 
 db.insert({'imageMd5': md5hash.hexdigest()})
 
-background = cover
+background = cover.convert('LA')
 background = ImageEnhance.Contrast(background).enhance(random.uniform(0.7, 1.0))
 background = background.filter(ImageFilter.GaussianBlur(radius = randint(0, 5)))
 
@@ -170,15 +167,28 @@ data = r.content
 data = json.loads(data)
 caption = data['post']
 '''
-caption = "Follow us for your daily motivation  : @novus.quotes <3\n\#tag that person who needs to see this :100:\n.\n.:point_right:@novus.quotes:point_left:\n.:point_right:@novus.quotes:point_left:\n.:point_right:@novus.quotes:point_left:\n.\n#quotes #inspirationalquotes #inspirational #quotesForYou #motivateyourmind #motivatemyself #quotesToInspire #motivational #quotesToRemember #successquotes #lovequotes #success #quotesoftheday #funquotes #motivatinalquotes #quotesdaily #minimal #Novus.quotes #novus #positivevibes\n+ #name of the author (olokliro kai memonomena)\n+ #ousiastika mesa apo to quotes\nGia to Desciption tou page\nQuotes • Motivation • Inspirational\n:fire:Your Daily Quote Dose is here!\n:fire:Master Your Mindset :arrow_right: Unleash Your Greatness!"
+caption = text + "\n.\n" + "Follow us for your daily motivation  : @novus.quotes\n.\n #tag that person who needs to see this\n @novus.quotes\n @novus.quotes\n @novus.quotes\n.\n" + "#quotes #inspirationalquotes #inspirational #quotesForYou #motivateyourmind #motivatemyself #quotesToInspire #motivational #quotesToRemember #successquotes #lovequotes #success #quotesoftheday #funquotes #motivatinalquotes #quotesdaily #minimal #Novusquotes #novus #positivevibes"
+caption+="\n "
+for word in author.split():
+    caption += "#" + word + " "
+
+caption+="\n"
+nouns = [word for (word, pos) in nltk.pos_tag(tokenized) if is_noun(pos)] 
+if len(nouns) != 0:
+    for noun in nouns:
+        caption+= "#" + noun + " "
+
+caption+="\n #"
+for word in author.split():
+    caption += word
+
 print (caption)
-exit(0)
 image_path = os.path.dirname(os.path.abspath(__file__)) + "\\ready.png"
 
 mobile_emulation = { "deviceName": "Pixel 2" }
 opts = webdriver.ChromeOptions()
 opts.add_experimental_option("mobileEmulation", mobile_emulation)
-#opts.add_argument("--headless")
+#opts.add_argument("headless")
 
 driver = webdriver.Chrome(executable_path=r"./chromedriver",options=opts)
 
@@ -245,6 +255,8 @@ next_btn = driver.find_element_by_xpath("//button[contains(text(),'Next')]").cli
 sleep(randint(3,4))
 caption_field = driver.find_element_by_xpath("//textarea[@aria-label='Write a caption…']")
 caption_field.send_keys(caption)
+sleep(1)
 share_btn = driver.find_element_by_xpath("//button[contains(text(),'Share')]").click()
-sleep(randint(3,4))
+sleep(10)
 driver.close()
+sleep(4)
