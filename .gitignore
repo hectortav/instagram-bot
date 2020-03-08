@@ -136,3 +136,4 @@ fonts
 *.json
 debug*
 chromedriver
+.vs
