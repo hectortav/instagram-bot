@@ -1,2 +1,3 @@
 @echo off
-python .\postImage.py
+pip install -r requirements.txt
+python .\postImageWin.py
